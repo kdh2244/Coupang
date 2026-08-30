@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>장바구니</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body{
+            background:#f8f9fa;
+        }
+
+        .cart-item{
+            background:white;
+            border-radius:12px;
+            padding:20px;
+            margin-bottom:20px;
+            box-shadow:0 2px 10px rgba(0,0,0,.08);
+        }
+
+        .product-img{
+            width:120px;
+            height:120px;
+            object-fit:cover;
+            border-radius:10px;
+        }
+
+        .qty-input{
+            width:70px;
+            text-align:center;
+        }
+
+        .summary{
+            position:sticky;
+            top:20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+
+    <div class="mb-6">
+        <a th:href ="@{/home}" class="logo">My Shop</a>
+    </div>
+    <h2 class="mb-4">🛒 장바구니</h2>
+
+    <form th:action = "@{/order/showCartToOrderPage}" method="post">
+        <div class="row">
+
+            <!-- 상품 목록 -->
+            <div class="col-lg-8">
+
+                <!-- 전체 선택 -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <input id="totalCheck" class="form-check-input me-2" type="checkbox">
+                        <label>전체 선택</label>
+                    </div>
+                </div>
+
+                <div th:each="product,stat : ${productlist}">
+                    <!-- 상품 1 -->
+                    <div class="cart-item">
+
+                        <div class="row align-items-center">
+
+                            <div class="col-md-1 text-center">
+                                <input class="form-check-input check" type="checkbox">
+                            </div>
+
+                            <div class="col-md-2">
+                                <img src="https://placehold.co/120x120"
+                                     class="product-img">
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <h5 th:text="${product.name}">갤럭시 S25</h5>
+
+                                <div class="text-secondary" th:text="${product.description}">
+                                    삼성전자 최신 스마트폰
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-2">
+
+                                <label class="form-label">
+                                    수량
+                                </label>
+
+                                <input
+                                        th:id = "'input'+${stat.index}"
+                                        type="number"
+                                        class="form-control qty-input myInput"
+                                        th:value = "${orderitemlist[stat.index].count}"
+                                        min="1">
+
+                            </div>
+
+                            <div class="col-md-2 text-end">
+
+                                <h5 th:data-price="${product.price}" class="myPrice" id="'price'+${stat.index}" th:text = "${#numbers.formatInteger(product.price*orderitemlist[stat.index].count,3,'COMMA')}+'원'">1,250,000원</h5>
+
+                            </div>
+
+                            <div class="col-md-1 text-end">
+
+                                <button class="btn btn-outline-danger">
+                                    삭제
+                                </button>
+
+                            </div>
+
+                            <input disabled class="transferOrderitems" type="hidden" name="orderitems" th:value="${orderitemlist[stat.index].id}"/>
+                            <input disabled type="hidden" class="transferCount" name="counts" th:value="${orderitemlist[stat.index].count}"/>
+
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 주문 요약 -->
+
+            <div class="col-lg-4">
+
+                <div class="card summary">
+
+                    <div class="card-body">
+
+                        <h4 class="mb-4">
+                            주문 요약
+                        </h4>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>상품 금액</span>
+                            <strong class="totalResult"></strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span >배송비</span>
+                            <strong>무료</strong>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between">
+
+                            <h4>총 결제금액</h4>
+
+                            <h4 class="text-primary">
+                               원
+                            </h4>
+
+                        </div>
+
+                        <div class="d-grid mt-4">
+
+                            <button id="buyBtn"  disabled type="submit" class="btn btn-primary btn-lg">
+                                선택한 상품 구매
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </form>
+
+</div>
+    <script th:inline="javascript">
+        console.log("start");
+        const length = [[${#lists.size(productlist)}]];
+        const pricelist = /*[[${pricelist}]]*/ [];
+
+         var myInputs = document.getElementsByClassName("myInput");
+          var myPrices = document.getElementsByClassName("myPrice");
+           var transferCounts = document.getElementsByClassName("transferCount");
+            const buyBtn = document.getElementById("buyBtn");
+
+        for(let i = 0 ; i<length ; i++){
+            myInputs[i].addEventListener("input",function(){
+                console.log("input event 발생");
+                //총 합계 계산
+                var total = totalCal();
+                 totalResult.innerHTML = total.toLocaleString() + "원";
+
+                const count = myInputs[i].value;
+                myPrices[i].textContent = (myPrices[i].dataset.price * count).toLocaleString() + "원";
+                transferCounts[i].value = count;
+            });
+        }
+
+        var totalCheck = document.getElementById("totalCheck");
+         var checks = document.getElementsByClassName("check");
+         var transferOrderitems = document.getElementsByClassName("transferOrderitems");
+            var totalResult = document.getElementsByClassName("totalResult")[0];
+        totalCheck.addEventListener("change",function(){
+
+                if(this.checked){
+                    for(let i =0 ;i<checks.length;i++){
+                        checks[i].checked = true;
+                        buyBtn.disabled = false;
+                        checks[i].dispatchEvent(new Event("change"));
+                    }
+                }else{
+                     for(let i =0 ;i<checks.length;i++){
+                        checks[i].checked = false;
+                        buyBtn.disabled = true;
+                        checks[i].dispatchEvent(new Event("change"));
+                    }
+                }
+        });
+
+         for(let i =0 ;i<checks.length;i++){
+            checks[i].addEventListener("change",function(){
+               var total = totalCal();
+               console.log("total"+total);
+               if(this.checked){
+                    transferOrderitems[i].disabled = false;
+                    transferCounts[i].disabled = false;
+                    buyBtn.disabled = false;
+                    totalResult.innerHTML = total.toLocaleString() + "원";
+               }else{
+                    if(totalCheck.checked){
+                        totalCheck.checked = false;
+                    }
+                    transferOrderitems[i].disabled = true;
+                     transferCounts[i].disabled = true;
+                     check();
+                     totalResult.innerHTML = total.toLocaleString() + "원";
+               }
+            });
+         }
+
+
+        function check(){
+            for(let i = 0 ;i<checks.length;i++){
+                if(checks[i].checked){
+                    return ;
+                }
+            }
+            buyBtn.disabled = true;
+        }
+
+        function totalCal(){
+            var total = 0 ;
+
+            for(let i =0 ;i<checks.length;i++){
+                if(checks[i].checked){
+                    total += pricelist[i] * myInputs[i].value;
+                }
+            }
+            return total;
+
+        }
+
+
+
+
+
+
+    </script>
+
+</body>
+</html>

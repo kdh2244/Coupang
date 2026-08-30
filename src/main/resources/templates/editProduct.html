@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>상품 관리</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+
+<body>
+
+<div class="container mt-5">
+
+    <h2 class="text-center mb-4">상품 관리</h2>
+
+    <!-- 검색 -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-7">
+            <form th:action="@{/admin/edit/search}" method="post">
+                <div class="input-group">
+
+                    <!-- 카테고리 버튼 -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle"
+                                id="categoryBtn"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            카테고리
+                        </button>
+
+                        <ul  class="dropdown-menu">
+                            <li th:each = "category : ${categoryList}"
+                                th:class = "categoryLi"><a class="dropdown-item" th:data-id = "${category.id}" th:text="${category.name}"></a>
+                            </li>
+                            <input id="transCategory"  type="hidden" name="categoryId" />
+                        </ul>
+                    </div>
+
+                    <input type="text"
+                           name="keyword"
+                           class="form-control"
+                           th:value="${keyword}"
+                           placeholder="상품명을 검색하세요">
+                    <input type="hidden"
+                        name="pageNumber"
+                            th:value="0">
+                    <button class="btn btn-primary">
+                        검색
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+
+    <!-- 상품 목록 -->
+    <div class="row justify-content-center">
+        <div class="col-md-9" th:each = "product : ${products}">
+
+            <!-- 상품 1 -->
+            <div class="card mb-3">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <h5 th:text="${product.name}" class="mb-1">삼성 갤럭시</h5>
+<!--                        <span th:text="${product.price}" class="text-muted">1,000,000원</span>-->
+                    </div>
+
+                    <button class="btn btn-warning"
+                            th:onclick="'showEditForm('+${product.id}+')'">
+                        수정
+                    </button>
+
+                </div>
+
+                <!-- 수정 영역 -->
+                <div th:id="${product.id}"
+                     class="card-body border-top d-none">
+
+                    <form th:action="@{/admin/edit}" method="post">
+
+                        <div class="mb-3">
+                            <label class="form-label">상품명</label>
+                            <input type="text"
+                                   class="form-control"
+                                   name="name"
+                                   th:value="${product.name}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">가격</label>
+                            <input type="number"
+                                   class="form-control"
+                                   name="price"
+                                   th:value="${product.price}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">재고</label>
+                            <input type="number"
+                                   name="stock"
+                                   class="form-control"
+                                   th:value="${product.stock}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">상품 설명</label>
+                            <textarea class="form-control"
+                                      name="description"
+                                      th:value = "${product.description}"
+                                      th:text = "${product.description}"
+                                      rows="4">삼성 갤럭시 스마트폰입니다.</textarea>
+                        </div>
+
+                        <!-- 카테고리 선택 영역 -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">카테고리</label>
+
+                            <div class="border rounded p-3">
+
+                                <!-- 카테고리 목록 -->
+                                <div class="row g-3">
+                                    <div th:each = "category : ${categoryList}" class="col-md-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input"
+                                                   type="checkbox"
+                                                   id="category1"
+                                                   name="addCategoryIds"
+                                                   th:value="${category.id}"
+                                            th:checked = "${product.categoryList.contains(category)}">
+
+                                            <label class="form-check-label"
+                                                   for="category1" th:text = "${category.name}">
+
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <input type="hidden" th:value="${product.id}" name="productId">
+                            <input type="hidden" th:value="${pageNumber}" name="pageNumber">
+                            <input type="hidden" th:value="${keyword}" name="keyword">
+                            <input type="hidden" th:value="${currentCategoryId}" name="categoryId">
+                            <button type="submit"
+                                    class="btn btn-success">
+                                수정 완료
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+        <div class="d-flex justify-content-center align-items-center gap-2 mt-4">
+
+
+                <!-- 이전 -->
+            <a th:href="@{/admin/edit/search(pageNumber=${products.number-1},keyword=${keyword}, categoryId=${currentCategoryId})}"
+                class="d-flex gap-1 text-decoration-none"
+                    th:classappend="${products.number == 0 ? 'pe-none test-secondary' : ''}">
+                <button type="submit" class="btn btn-outline-secondary">
+                    이전
+                </button>
+            </a>
+
+                <!-- 페이지 번호 -->
+                <a th:each="pageNumber : ${#numbers.sequence(0, products.totalPages-1)}"
+                   th:href="@{/admin/edit/search(pageNumber=${pageNumber}, keyword=${keyword}, categoryId=${currentCategoryId})}"
+                   class="d-flex gap-1">
+                    <button type="submit"
+                            th:text="${pageNumber+1}"
+                            class="btn btn-outline-primary">
+                    </button>
+
+                </a>
+
+                <!-- 다음 -->
+                <a th:href="@{/admin/edit/search(pageNumber=${products.number+1}, keyword=${keyword}, categoryId=${currentCategoryId})}"
+                   class="d-flex gap-1 text-decoration-none"
+                   th:classappend="${products.number == products.totalPages - 1  ? 'pe-none test-secondary' : ''}">
+                    <button type="submit" class="btn btn-outline-secondary">
+                        다음
+                    </button>
+                </a>
+
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+
+    const categoryLis = document.getElementsByClassName("categoryLi");
+    const transCategory = document.getElementById("transCategory");
+    const categoryBtn = document.getElementById("categoryBtn");
+    for(let i = 0 ; i < categoryLis.length ; i++){
+        categoryLis[i].addEventListener("click",function(){
+            transCategory.value = categoryLis[i].children[0].dataset.id;
+            categoryBtn.innerHTML = categoryLis[i].children[0].text;
+        });
+    }
+
+
+    function showEditForm(id) {
+
+        const form = document.getElementById(id);
+
+        form.classList.toggle("d-none");
+
+    }
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
