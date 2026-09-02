@@ -112,7 +112,7 @@ public class ProductService {
 
     @Transactional
     public void decreaseStock(int product_id,int count){
-        Optional<Product> product = productRepository.findById(product_id);
+        Optional<Product> product = productRepository.findByIdWithPessimisticLock(product_id);
         product.get().setStock(product.get().getStock()-count);
     }
 

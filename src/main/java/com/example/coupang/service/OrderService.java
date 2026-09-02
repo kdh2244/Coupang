@@ -31,6 +31,11 @@ public class OrderService {
     ProductService productService;
 
     public void order(Users user, Product product, int count){
+
+        if(count>product.getStock()){
+            throw new IllegalArgumentException("상품제고가 부족합니다.");
+        }
+
         //order 랑 orderitem 엔티티 생성하기
         Order order = new Order();
         order.setStatus("ready");
@@ -54,6 +59,10 @@ public class OrderService {
 
 
     public void cart(Users user, Product product, int count){
+
+        if(count > product.getStock()){
+            throw new IllegalArgumentException("상품제고가 부족합니다.");
+        }
 
         Order order = orderRepository.findByUsers_idAndStatusStartsWith(user.getId(),"cart");
         //order 엔티티 만들기
@@ -90,6 +99,7 @@ public class OrderService {
     }
 
     public void cartToOrder(Users user, List<Integer> orderitems, List<Integer> counts) {
+
         Order order = new Order();
         order.setUsers(user);
         order.setStatus("ready");
@@ -98,10 +108,16 @@ public class OrderService {
         for(int i = 0 ; i<orderitems.size(); i++){
            Optional<Orderitem> optionalOrderitem = orderitemRepository.findById(orderitems.get(i));
            Orderitem orderitem = optionalOrderitem.get();
-           orderitem.setStatus("ready");
+            Optional<Product> product = productRepository.findById(orderitem.getProduct().getId());
+
+            if(counts.get(i)>product.get().getStock()){
+                throw new IllegalArgumentException("상품제고가 부족합니다.");
+            }
+
+            orderitem.setStatus("ready");
            orderitem.setOrder(order);
            orderitem.setCount(counts.get(i));
-           Optional<Product> product = productRepository.findById(orderitem.getProduct().getId());
+
            int price = product.get().getPrice();
            orderitem.setTotalPrice(counts.get(i)*price);
            orderitemRepository.save(orderitem);

@@ -3,6 +3,7 @@ package com.example.coupang.controller;
 import com.example.coupang.DTO.UsersDto;
 import com.example.coupang.entity.Users;
 import com.example.coupang.service.Signup;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.userdetails.User;
