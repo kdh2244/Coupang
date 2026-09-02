@@ -5,6 +5,7 @@ import com.example.coupang.entity.Category;
 import com.example.coupang.entity.Product;
 import com.example.coupang.service.CategoryService;
 import com.example.coupang.service.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter;
@@ -40,7 +41,7 @@ public class ManageController {
     }
 
     @PostMapping("/add")
-    public String addProduct(Model model, ProductDto productDto,
+    public String addProduct(Model model, @Valid ProductDto productDto,
                              @RequestParam List<Integer> addCategoryIds){
 
         Product product = productDto.toEntity();
@@ -76,7 +77,7 @@ public class ManageController {
 
     @PostMapping(value = "/edit")
     public String editProduct(Model model,
-                              ProductDto productDto,
+                              @Valid ProductDto productDto,
                               @RequestParam("productId") int productId,
                               @RequestParam int pageNumber,
                               @RequestParam String keyword,

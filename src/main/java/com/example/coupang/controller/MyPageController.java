@@ -6,6 +6,7 @@ import com.example.coupang.entity.Users;
 import com.example.coupang.repository.UsersRepository;
 import com.example.coupang.service.OrderService;
 import com.example.coupang.service.UsersService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
